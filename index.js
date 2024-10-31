@@ -9,15 +9,15 @@ dotenv.config();
 // Crear el servidor Express
 const app = express();
 const port = 3000;
+const host = "35.238.93.30";
 
 const corsOptions = {
-  origin: '*', // Permitir cualquier origen
-  methods: ['GET', 'POST', 'PUT', 'DELETE'],
-  allowedHeaders: ['Content-Type', 'Authorization'],
+  origin: "*", // Permitir cualquier origen
+  methods: ["GET", "POST", "PUT", "DELETE"],
+  allowedHeaders: ["Content-Type", "Authorization"],
 };
 
 app.use(cors(corsOptions));
-
 
 // Configurar middleware
 app.use(express.json()); // Para parsear JSON
@@ -38,15 +38,21 @@ app.get("/api/check-code", async (req, res) => {
   const { barcode } = req.query;
 
   if (!barcode) {
-    return res.status(400).json({ message: "El código de barras es obligatorio." });
+    return res
+      .status(400)
+      .json({ message: "El código de barras es obligatorio." });
   }
 
   try {
-    const result = await pool.query("SELECT * FROM barcodes WHERE code = $1", [barcode]);
+    const result = await pool.query("SELECT * FROM barcodes WHERE code = $1", [
+      barcode,
+    ]);
     res.status(200).json({ exists: result.rowCount > 0 });
   } catch (error) {
     console.error("Error al comprobar el código:", error);
-    res.status(500).json({ message: "Error al comprobar el código en la base de datos." });
+    res
+      .status(500)
+      .json({ message: "Error al comprobar el código en la base de datos." });
   }
 });
 
@@ -58,18 +64,34 @@ app.get("/api/get-products", async (req, res) => {
     res.status(200).json(result.rows);
   } catch (error) {
     console.error("Error al obtener los productos:", error);
-    res.status(500).json({ message: "Error al obtener los productos de la base de datos." });
+    res
+      .status(500)
+      .json({ message: "Error al obtener los productos de la base de datos." });
   }
 });
 
-
-
-
 // Ruta para guardar el código de barras
 app.post("/api/save-code", async (req, res) => {
-  const { barcode, name, entryDate, expiryDate, withdrawalDate, weight, quantity, batch } = req.body;
+  const {
+    barcode,
+    name,
+    entryDate,
+    expiryDate,
+    withdrawalDate,
+    weight,
+    quantity,
+    batch,
+  } = req.body;
 
-  if (!barcode || !name || !entryDate || !expiryDate || !weight || !quantity || !batch) {
+  if (
+    !barcode ||
+    !name ||
+    !entryDate ||
+    !expiryDate ||
+    !weight ||
+    !quantity ||
+    !batch
+  ) {
     return res
       .status(400)
       .json({ message: "Todos los campos son obligatorios." });
@@ -79,7 +101,16 @@ app.post("/api/save-code", async (req, res) => {
     // Guardar el código y otros datos en la base de datos
     const result = await pool.query(
       "INSERT INTO barcodes (code, name, entry_date, expiry_date, withdrawal_date, weight, quantity, batch) VALUES ($1, $2, $3, $4, $5, $6, $7, $8) RETURNING *",
-      [barcode, name, entryDate, expiryDate, withdrawalDate, weight, quantity, batch]
+      [
+        barcode,
+        name,
+        entryDate,
+        expiryDate,
+        withdrawalDate,
+        weight,
+        quantity,
+        batch,
+      ]
     );
     res
       .status(200)
@@ -92,13 +123,22 @@ app.post("/api/save-code", async (req, res) => {
   }
 });
 
-
 // Ruta para actualizar los detalles del código de barras
 app.put("/api/update-code", async (req, res) => {
-  const { barcode, entryDate, expiryDate, withdrawalDate, weight, quantity, batch } = req.body;
+  const {
+    barcode,
+    entryDate,
+    expiryDate,
+    withdrawalDate,
+    weight,
+    quantity,
+    batch,
+  } = req.body;
 
   if (!barcode) {
-    return res.status(400).json({ message: "El código de barras es obligatorio." });
+    return res
+      .status(400)
+      .json({ message: "El código de barras es obligatorio." });
   }
 
   try {
@@ -115,17 +155,23 @@ app.put("/api/update-code", async (req, res) => {
       return res.status(404).json({ message: "Código no encontrado." });
     }
 
-    res.status(200).json({ message: "Detalles actualizados con éxito!", data: result.rows[0] });
+    res
+      .status(200)
+      .json({
+        message: "Detalles actualizados con éxito!",
+        data: result.rows[0],
+      });
   } catch (error) {
     console.error("Error al actualizar los detalles:", error);
-    res.status(500).json({ message: "Error al actualizar los detalles en la base de datos." });
+    res
+      .status(500)
+      .json({
+        message: "Error al actualizar los detalles en la base de datos.",
+      });
   }
 });
 
-
-
 // Iniciar el servidor
-app.listen(port, '0.0.0.0', () => {
-  console.log(`Servidor escuchando en http://localhost:${port}`);
+app.listen(port, "0.0.0.0", () => {
+  console.log(`Servidor escuchando en http://${host}:${port}`);
 });
-
