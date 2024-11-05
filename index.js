@@ -2,6 +2,8 @@ const express = require("express");
 const { Pool } = require("pg");
 const dotenv = require("dotenv");
 const cors = require("cors");
+const fs = require("fs"); // <--- Importa el módulo fs
+const https = require("https"); // <--- Importa el módulo https
 
 // Cargar las variables de entorno desde .env
 dotenv.config();
@@ -30,7 +32,7 @@ const pool = new Pool({
 
 // Ruta de prueba
 app.get("/", (req, res) => {
-  res.send("¡Servidor funcionando correctamente!");
+  res.send("¡Servidor HTTPS funcionando correctamente!");
 });
 
 // Ruta para comprobar si un código de barras existe
@@ -53,20 +55,6 @@ app.get("/api/check-code", async (req, res) => {
     res
       .status(500)
       .json({ message: "Error al comprobar el código en la base de datos." });
-  }
-});
-
-// Ruta para obtener todos los productos
-app.get("/api/get-products", async (req, res) => {
-  try {
-    const result = await pool.query("SELECT * FROM barcodes");
-    console.log("Productos obtenidos:", result.rows);
-    res.status(200).json(result.rows);
-  } catch (error) {
-    console.error("Error al obtener los productos:", error);
-    res
-      .status(500)
-      .json({ message: "Error al obtener los productos de la base de datos." });
   }
 });
 
@@ -171,7 +159,13 @@ app.put("/api/update-code", async (req, res) => {
   }
 });
 
-// Iniciar el servidor
-app.listen(port, "0.0.0.0", () => {
-  console.log(`Servidor escuchando en http://${host}:${port}`);
+// Cargar certificados SSL (ajusta las rutas a tus archivos)
+const httpsOptions = {
+  key: fs.readFileSync('server.key'), // Ruta al archivo .key
+  cert: fs.readFileSync('server.cer'), // Ruta al archivo .crt
+};
+
+// Iniciar el servidor HTTPS
+https.createServer(httpsOptions, app).listen(port, host, () => {
+  console.log(`Servidor escuchando en https://${host}:${port}`);
 });
